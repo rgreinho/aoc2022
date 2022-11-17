@@ -12,7 +12,13 @@ where
     let values = fs::read_to_string(input).expect("Could not load file");
     input_from_string::<T>(&values)
 }
-
+/// Read the content of a string and parse each line into a Vector.
+///
+/// ```
+/// use aoc2022::input_from_string;
+///
+/// assert_eq!(input_from_string::<u8>("1\n6\n8\n32\n112\n"), vec![1,6,8,32,112]);
+/// ```
 pub fn input_from_string<T>(input: &str) -> Vec<T>
 where
     T: FromStr,
@@ -32,6 +38,13 @@ where
     input_sep_from_string::<T>(&values, separator)
 }
 
+/// Read the content of a string, split based on the separator and parse each line into a Vector.
+///
+/// ```
+/// use aoc2022::input_sep_from_string;
+///
+/// assert_eq!(input_sep_from_string::<u8>("1,6,8,32,112\n", ","), vec![1,6,8,32,112]);
+/// ```
 pub fn input_sep_from_string<T>(input: &str, separator: &str) -> Vec<T>
 where
     T: FromStr,
