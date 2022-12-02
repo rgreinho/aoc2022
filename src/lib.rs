@@ -3,6 +3,7 @@ use std::path::Path;
 use std::str::FromStr;
 
 pub mod day01;
+pub mod day02;
 
 pub fn read_input<P, T>(input: P) -> Vec<T>
 where
