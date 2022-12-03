@@ -4,6 +4,7 @@ use std::str::FromStr;
 
 pub mod day01;
 pub mod day02;
+pub mod day03;
 
 pub fn read_input<P, T>(input: P) -> Vec<T>
 where
