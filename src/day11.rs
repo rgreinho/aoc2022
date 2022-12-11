@@ -34,6 +34,29 @@ pub fn parse_input_a(input: &str) -> Vec<Monkey> {
         .collect::<Vec<Monkey>>()
 }
 
+pub fn process_input_a(monkeys: &mut [Monkey]) -> u32 {
+    for _round in 0..20 {
+        for monkey in &*monkeys {
+            for item in &monkey.items.0 {
+                let mut worry_level = match monkey.operation {
+                    Operation::Add(v) => item + v,
+                    Operation::Multiply(v) => item * v,
+                    Operation::Square => item * item,
+                };
+                worry_level = ((worry_level / 3) as f32).round() as u32;
+                if worry_level % monkey.test.amount == 0 {
+                    // Throw to monkey.truthy
+                    // monkey.items.0.push(*item);
+                    monkeys[3].catch(*item);
+                } else {
+                    // Throw to monkey.falsy
+                }
+            }
+        }
+    }
+    0
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct Items(Vec<u32>);
 
@@ -176,6 +199,10 @@ impl Monkey {
                 inspected_items: 0,
             },
         ))
+    }
+
+    pub fn catch(&mut self, item: u32) {
+        self.items.0.push(item);
     }
 }
 
