@@ -2,7 +2,7 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, take_until, take_while},
     character::{
-        complete::{alphanumeric1, char, space0, u32, u8},
+        complete::{alphanumeric1, char, space0, u32, u64, u8},
         is_digit,
     },
     error::{Error, ErrorKind},
@@ -14,7 +14,9 @@ use std::{fs, str::FromStr};
 
 pub fn day11a() -> String {
     let data = fs::read_to_string("assets/day11.txt").expect("Could not load file");
-    data
+    let monkeys = parse_input_a(&data);
+    let inspected = process_input_a(&monkeys, 3, 20);
+    inspected.to_string()
 }
 
 pub fn day11b() -> String {
@@ -34,37 +36,45 @@ pub fn parse_input_a(input: &str) -> Vec<Monkey> {
         .collect::<Vec<Monkey>>()
 }
 
-pub fn process_input_a(monkeys: &mut [Monkey]) -> u32 {
-    for _round in 0..20 {
-        for monkey in &*monkeys {
-            for item in &monkey.items.0 {
-                let mut worry_level = match monkey.operation {
-                    Operation::Add(v) => item + v,
-                    Operation::Multiply(v) => item * v,
-                    Operation::Square => item * item,
-                };
-                worry_level = ((worry_level / 3) as f32).round() as u32;
-                if worry_level % monkey.test.amount == 0 {
-                    // Throw to monkey.truthy
-                    // monkey.items.0.push(*item);
-                    monkeys[3].catch(*item);
-                } else {
-                    // Throw to monkey.falsy
-                }
-            }
+pub fn process_input_a(monkeys: &[Monkey], factor: u64, rounds: u32) -> u32 {
+    let mut items = vec![vec![]; monkeys.len()];
+    let mut inspected = vec![0; monkeys.len()];
+
+    // Populate.
+    for (i, monkey) in monkeys.iter().enumerate() {
+        for item in &monkey.items.0 {
+            items[i].push(*item);
         }
     }
-    0
+
+    // For each round...
+    for round in 0..rounds {
+        // For each monkey..
+        for (i, monkey) in monkeys.iter().enumerate() {
+            // Throw its items.
+            for j in 0..items[i].len() {
+                let (item, to) = monkey.throw_item_to(items[i][j], factor);
+                items[to].push(item);
+                inspected[i] += 1;
+            }
+            // Remove the monkey's items.
+            items[i].clear();
+        }
+    }
+
+    // dbg!(&inspected);
+    inspected.sort();
+    inspected.iter().rev().take(2).product()
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub struct Items(Vec<u32>);
+pub struct Items(Vec<u64>);
 
 impl Items {
     pub fn parse(i: &str) -> IResult<&str, Items> {
         //  Starting items: 84, 66, 62, 69, 88, 91, 91
         let (i, _) = take_while(|c| !is_digit(c as u8))(i)?;
-        let (i, items) = separated_list1(tag(", "), u32)(i)?;
+        let (i, items) = separated_list1(tag(", "), u64)(i)?;
         Ok((i, Items(items)))
     }
 }
@@ -85,8 +95,8 @@ impl FromStr for Items {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Operation {
-    Multiply(u32),
-    Add(u32),
+    Multiply(u64),
+    Add(u64),
     Square,
 }
 
@@ -99,8 +109,8 @@ impl Operation {
         let op = match amount {
             "old" => Operation::Square,
             _ => match symbol {
-                '+' => Operation::Add(amount.parse::<u32>().unwrap()),
-                '*' => Operation::Multiply(amount.parse::<u32>().unwrap()),
+                '+' => Operation::Add(amount.parse::<u64>().unwrap()),
+                '*' => Operation::Multiply(amount.parse::<u64>().unwrap()),
                 _ => {
                     return Err(nom::Err::Error(Error {
                         input: "Invalid symbol",
@@ -129,7 +139,7 @@ impl FromStr for Operation {
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Test {
-    amount: u32,
+    amount: u64,
     truthy: u32,
     falsy: u32,
 }
@@ -140,7 +150,7 @@ impl Test {
         //     If true: throw to monkey 4
         //     If false: throw to monkey 7
         let (i, _) = take_while(|c| !is_digit(c as u8))(i)?;
-        let (i, amount) = u32(i)?;
+        let (i, amount) = u64(i)?;
         let (i, _) = take_while(|c| !is_digit(c as u8))(i)?;
         let (i, truthy) = u32(i)?;
         let (i, _) = take_while(|c| !is_digit(c as u8))(i)?;
@@ -201,8 +211,27 @@ impl Monkey {
         ))
     }
 
-    pub fn catch(&mut self, item: u32) {
+    pub fn catch(&mut self, item: u64) {
         self.items.0.push(item);
+    }
+
+    pub fn worry_level(&self, item: u64, factor: u64) -> u64 {
+        let mut worry_level = match self.operation {
+            Operation::Add(v) => item + v,
+            Operation::Multiply(v) => item * v,
+            Operation::Square => item * item,
+        };
+        worry_level = ((worry_level / factor) as f64).round() as u64;
+        worry_level
+    }
+
+    pub fn throw_item_to(&self, item: u64, factor: u64) -> (u64, usize) {
+        let worry_level = self.worry_level(item, factor);
+        if worry_level % self.test.amount == 0 {
+            (worry_level, self.test.truthy as usize)
+        } else {
+            (worry_level, self.test.falsy as usize)
+        }
     }
 }
 
@@ -256,11 +285,16 @@ mod test {
     #[test]
     fn test_day11a_sample() {
         let monkeys = parse_input_a(RAW_INPUT);
-        dbg!(&monkeys);
+        let inspected = process_input_a(&monkeys, 3, 20);
+        assert_eq!(inspected, 10605);
     }
 
     #[test]
-    fn test_day11b_sample() {}
+    fn test_day11b_sample() {
+        let monkeys = parse_input_a(RAW_INPUT);
+        let inspected = process_input_a(&monkeys, 1, 10000);
+        assert_eq!(inspected, 2713310158);
+    }
 
     #[test]
     fn test_parse_items() {
