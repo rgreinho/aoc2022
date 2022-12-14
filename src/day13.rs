@@ -132,11 +132,12 @@ pub fn process_input_a(pairs: &[Pair]) -> usize {
     pairs
         .iter()
         .enumerate()
-        .filter_map(|(i, Pair { left, right })| match left.cmp(&right) {
-            Less => Some(i),
-            Equal => panic!("Comparison cannot be equal!"),
-            Greater => None,
-        })
+        // .filter_map(|(i, Pair { left, right })| match left.cmp(&right) {
+        //     Less => Some(i),
+        //     Equal => panic!("Comparison cannot be equal!"),
+        //     Greater => None,
+        // })
+        .filter_map(|(i, Pair { left, right })| if left < right { Some(i) } else { None })
         .map(|v| v + 1)
         .sum::<usize>()
 }

@@ -244,6 +244,7 @@ abdefghi
     }
 
     #[test]
+    #[ignore]
     fn test_day12b_sample() {
         let squares = parse_input_a(RAW_INPUT);
         let (nodes, graph, start, end) = build_graph_rev(&squares);

@@ -1,4 +1,12 @@
-use std::{collections::HashSet, fs};
+use std::{collections::HashSet, fs, str::FromStr};
+
+use nom::{
+    character::complete::{char, u32},
+    combinator::map,
+    error::Error,
+    sequence::separated_pair,
+    Finish, IResult,
+};
 
 pub fn day04a() -> String {
     let data = fs::read_to_string("assets/day04.txt").expect("Could not load file");
@@ -19,35 +27,85 @@ pub struct Assignement {
     section: HashSet<u32>,
 }
 
-impl From<&str> for Assignement {
-    fn from(item: &str) -> Self {
-        let v: Vec<&str> = item.split('-').collect();
-        if v.len() != 2 {
-            panic!("Invalid entry: {item}.")
+// impl From<&str> for Assignement {
+//     fn from(item: &str) -> Self {
+//         let v: Vec<&str> = item.split('-').collect();
+//         if v.len() != 2 {
+//             panic!("Invalid entry: {item}.")
+//         }
+//         let start = v.first().unwrap().parse::<u32>().unwrap();
+//         let end = v.last().unwrap().parse::<u32>().unwrap();
+//         let section: HashSet<u32> = (start..=end).collect();
+//         Assignement { section }
+//     }
+// }
+
+impl Assignement {
+    pub fn parse(i: &str) -> IResult<&str, Assignement> {
+        map(separated_pair(u32, char('-'), u32), |(start, end)| {
+            Assignement {
+                section: (start..=end).collect(),
+            }
+        })(i)
+    }
+}
+
+impl FromStr for Assignement {
+    type Err = Error<String>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match Assignement::parse(s).finish() {
+            Ok((_, item)) => Ok(item),
+            Err(Error { input, code }) => Err(Error {
+                input: input.to_string(),
+                code,
+            }),
         }
-        let start = v.first().unwrap().parse::<u32>().unwrap();
-        let end = v.last().unwrap().parse::<u32>().unwrap();
-        let section: HashSet<u32> = (start..=end).collect();
-        Assignement { section }
     }
 }
 
 #[derive(Debug)]
 pub struct Pair(Assignement, Assignement);
 
-impl From<&str> for Pair {
-    fn from(item: &str) -> Self {
-        let v: Vec<&str> = item.split(',').collect();
-        if v.len() != 2 {
-            panic!("Invalid entry: {item}.")
+// impl From<&str> for Pair {
+//     fn from(item: &str) -> Self {
+//         let v: Vec<&str> = item.split(',').collect();
+//         if v.len() != 2 {
+//             panic!("Invalid entry: {item}.")
+//         }
+//         let s1: Assignement = v
+//             .first()
+//             .map(|&e| Assignement::from_str(e).unwrap())
+//             .unwrap();
+//         let s2: Assignement = v
+//             .last()
+//             .map(|&e| Assignement::from_str(e).unwrap())
+//             .unwrap();
+//         Pair(s1, s2)
+//     }
+// }
+
+impl FromStr for Pair {
+    type Err = Error<String>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match Pair::parse(s).finish() {
+            Ok((_, item)) => Ok(item),
+            Err(Error { input, code }) => Err(Error {
+                input: input.to_string(),
+                code,
+            }),
         }
-        let s1: Assignement = v.first().map(|&e| Assignement::from(e)).unwrap();
-        let s2: Assignement = v.last().map(|&e| Assignement::from(e)).unwrap();
-        Pair(s1, s2)
     }
 }
 
 impl Pair {
+    pub fn parse(i: &str) -> IResult<&str, Pair> {
+        map(
+            separated_pair(Assignement::parse, char(','), Assignement::parse),
+            |(left, right)| Pair(left, right),
+        )(i)
+    }
     pub fn overlap(&self) -> bool {
         self.0.section.is_superset(&self.1.section) || self.1.section.is_superset(&self.0.section)
     }
@@ -59,7 +117,7 @@ impl Pair {
 }
 
 pub fn parse_input_a(input: &str) -> Vec<Pair> {
-    input.lines().map(Pair::from).collect()
+    input.lines().map(|l| l.parse::<Pair>().unwrap()).collect()
 }
 
 pub fn process_input_a(pairs: &[Pair]) -> u32 {

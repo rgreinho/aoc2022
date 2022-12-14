@@ -290,6 +290,7 @@ mod test {
     }
 
     #[test]
+    #[ignore]
     fn test_day11b_sample() {
         let monkeys = parse_input_a(RAW_INPUT);
         let inspected = process_input_a(&monkeys, 1, 10000);
