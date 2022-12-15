@@ -15,6 +15,8 @@ use nom::{
     Finish, IResult,
 };
 
+use crate::nomstr;
+
 pub fn day14a() -> String {
     let data = fs::read_to_string("assets/day14.txt").expect("Could not load file");
     let mut cave = data.parse::<Cave>().unwrap();
@@ -58,19 +60,7 @@ impl Coordinate {
     }
 }
 
-impl FromStr for Coordinate {
-    type Err = Error<String>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match Coordinate::parse(s).finish() {
-            Ok((_, item)) => Ok(item),
-            Err(Error { input, code }) => Err(Error {
-                input: input.to_string(),
-                code,
-            }),
-        }
-    }
-}
+nomstr!(Coordinate);
 
 #[derive(Debug, PartialEq, Eq)]
 pub struct Wall(HashSet<Coordinate>);
@@ -103,19 +93,7 @@ impl Wall {
     }
 }
 
-impl FromStr for Wall {
-    type Err = Error<String>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match Wall::parse(s).finish() {
-            Ok((_, item)) => Ok(item),
-            Err(Error { input, code }) => Err(Error {
-                input: input.to_string(),
-                code,
-            }),
-        }
-    }
-}
+nomstr!(Wall);
 
 #[derive(Debug)]
 pub enum Tile {
@@ -149,19 +127,7 @@ impl Cave {
     }
 }
 
-impl FromStr for Cave {
-    type Err = Error<String>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match Cave::parse(s).finish() {
-            Ok((_, item)) => Ok(item),
-            Err(Error { input, code }) => Err(Error {
-                input: input.to_string(),
-                code,
-            }),
-        }
-    }
-}
+nomstr!(Cave);
 
 pub fn process_input_a(cave: &mut Cave) -> u32 {
     let lowest_point = cave.lowest_point();

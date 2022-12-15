@@ -68,3 +68,28 @@ where
         .filter_map(|s| s.parse::<T>().ok())
         .collect::<Vec<T>>()
 }
+
+// Create a FromStr implementation for a specific type.
+//
+// This macros expects the following items to be setup before use:
+//   - `use std::str::FromStr` must be in scope
+//   - the type must implement a `parse` function with the following signature
+//       `pub fn parse(i: &str) -> IResult<&str, __type__>`
+#[macro_export]
+macro_rules! nomstr {
+    ($a:ident) => {
+        impl FromStr for $a {
+            type Err = Error<String>;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match $a::parse(s).finish() {
+                    Ok((_, item)) => Ok(item),
+                    Err(Error { input, code }) => Err(Error {
+                        input: input.to_string(),
+                        code,
+                    }),
+                }
+            }
+        }
+    };
+}
