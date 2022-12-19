@@ -12,6 +12,7 @@ pub fn day17a() -> String {
     let data = fs::read_to_string("assets/day17.txt").expect("Could not load file");
     let rock_count = process_input_a(&data, 2022);
     rock_count.to_string()
+    // 3266 is too high
 }
 
 pub fn day17b() -> String {
@@ -114,11 +115,11 @@ impl Rock {
 
     fn new_plus() -> Self {
         let mut formation = HashSet::new();
-        formation.insert(Coordinate::new(1, 0));
         formation.insert(Coordinate::new(0, 1));
+        formation.insert(Coordinate::new(1, 0));
         formation.insert(Coordinate::new(1, 1));
-        formation.insert(Coordinate::new(2, 1));
         formation.insert(Coordinate::new(1, 2));
+        formation.insert(Coordinate::new(2, 1));
         Rock {
             shape: Shape::Plus,
             height: 3,
@@ -241,38 +242,45 @@ impl Chamber {
     }
 
     pub fn highest_rock(&self) -> i32 {
-        self.bottom_line.iter().map(|c| c.y).max().unwrap_or(0)
+        self.bottom_line.iter().map(|c| c.y).max().unwrap()
+    }
+
+    pub fn lowest_rock(&self) -> i32 {
+        self.bottom_line.iter().map(|c| c.y).min().unwrap()
     }
 
     pub fn update(&mut self, rock: &Rock) {
-        // Index the rock parts.
-        let mut rock_parts: HashMap<i32, Coordinate> = HashMap::new();
-        for i in 0..7 {
-            let mut items_in_x = rock
-                .formation
-                .iter()
-                .filter(|&&c| c.x == i)
-                .map(|&c| c)
-                .collect::<Vec<Coordinate>>();
-            items_in_x.sort();
-            if let Some(c) = items_in_x.last() {
-                rock_parts.insert(i, *c);
-            }
-        }
+        // // Index the rock parts.
+        // let mut rock_parts: HashMap<i32, Coordinate> = HashMap::new();
+        // for i in 0..7 {
+        //     let mut items_in_x = rock
+        //         .formation
+        //         .iter()
+        //         .filter(|&&c| c.x == i)
+        //         .map(|&c| c)
+        //         .collect::<Vec<Coordinate>>();
+        //     items_in_x.sort();
+        //     if let Some(c) = items_in_x.last() {
+        //         rock_parts.insert(i, *c);
+        //     }
+        // }
 
-        // Find the highest between the rock and the bottom line.
-        let mut bottom_line = HashSet::new();
-        for bottom_line_part in self.bottom_line.drain() {
-            let y: i32;
-            if let Some(rock_part) = rock_parts.get(&bottom_line_part.x) {
-                y = max(rock_part.y, bottom_line_part.y);
-            } else {
-                y = bottom_line_part.y;
-            }
-            bottom_line.insert(Coordinate::new(bottom_line_part.x, y));
+        // // Find the highest between the rock and the bottom line.
+        // let mut bottom_line = HashSet::new();
+        // for bottom_line_part in self.bottom_line.drain() {
+        //     let y: i32;
+        //     if let Some(rock_part) = rock_parts.get(&bottom_line_part.x) {
+        //         y = max(rock_part.y, bottom_line_part.y);
+        //     } else {
+        //         y = bottom_line_part.y;
+        //     }
+        //     bottom_line.insert(Coordinate::new(bottom_line_part.x, y));
+        // }
+        // self.bottom_line = bottom_line;
+        // assert_eq!(self.bottom_line.len(), 7);
+        for rock_part in &rock.formation {
+            self.bottom_line.insert(*rock_part);
         }
-        self.bottom_line = bottom_line;
-        assert_eq!(self.bottom_line.len(), 7);
     }
 }
 
@@ -346,13 +354,13 @@ pub fn process_input_a(i: &str, limit: usize) -> i32 {
                 break;
             }
 
-            // if r.formation.iter().any(|c| c.y < chamber.highest_rock()) {
-            //     dbg!(&chamber.highest_rock());
-            //     dbg!(&rock_count);
-            //     dbg!(&r);
-            //     dbg!(&chamber);
-            //     panic!("We missed an intersection!");
-            // }
+            if r.formation.iter().any(|c| c.y <= chamber.lowest_rock()) {
+                dbg!(&chamber.highest_rock());
+                dbg!(&rock_count);
+                dbg!(&r);
+                dbg!(&chamber);
+                panic!("We missed an intersection!");
+            }
         }
     }
 
@@ -404,6 +412,20 @@ mod test {
         formation.insert(Coordinate::new(2, 2));
         formation.insert(Coordinate::new(3, 2));
         formation.insert(Coordinate::new(4, 2));
+        assert_eq!(
+            rock,
+            Rock {
+                shape: Shape::Minus,
+                height: 1,
+                formation
+            }
+        );
+        rock.shift(&Direction::Down);
+        let mut formation = HashSet::new();
+        formation.insert(Coordinate::new(1, 1));
+        formation.insert(Coordinate::new(2, 1));
+        formation.insert(Coordinate::new(3, 1));
+        formation.insert(Coordinate::new(4, 1));
         assert_eq!(
             rock,
             Rock {
