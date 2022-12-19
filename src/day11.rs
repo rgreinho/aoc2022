@@ -48,7 +48,7 @@ pub fn process_input_a(monkeys: &[Monkey], factor: u64, rounds: u32) -> u32 {
     }
 
     // For each round...
-    for round in 0..rounds {
+    for _round in 0..rounds {
         // For each monkey..
         for (i, monkey) in monkeys.iter().enumerate() {
             // Throw its items.

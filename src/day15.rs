@@ -126,7 +126,7 @@ pub fn process_input_a(sensors: &[Sensor], row: i64) -> usize {
     no_beacon_zone.len()
 }
 
-pub fn process_input_b(sensors: &[Sensor], boundary: i64) -> usize {
+pub fn process_input_b(_sensors: &[Sensor], _boundary: i64) -> usize {
     // let tunning_frequency = sensor.beacon.x * boundary + sensor.beacon.y;
     0
 }

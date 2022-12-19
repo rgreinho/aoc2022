@@ -2,7 +2,7 @@ use itertools::Itertools;
 
 use petgraph::{
     algo::dijkstra::dijkstra,
-    dot::{Config, Dot},
+    // dot::{Config, Dot},
     graph::NodeIndex,
     Graph,
 };
@@ -19,7 +19,7 @@ pub fn day12a() -> String {
 pub fn day12b() -> String {
     let data = fs::read_to_string("assets/day12.txt").expect("Could not load file");
     let squares = parse_input_a(&data);
-    let (nodes, graph, start, end) = build_graph(&squares);
+    let (nodes, graph, _start, end) = build_graph(&squares);
     let steps = process_input_b(&squares, &nodes, &graph, end);
     steps.to_string()
 }
@@ -247,7 +247,7 @@ abdefghi
     #[ignore]
     fn test_day12b_sample() {
         let squares = parse_input_a(RAW_INPUT);
-        let (nodes, graph, start, end) = build_graph_rev(&squares);
+        let (nodes, graph, _start, end) = build_graph_rev(&squares);
         let steps = process_input_b(&squares, &nodes, &graph, end);
         assert_eq!(steps, 29);
     }

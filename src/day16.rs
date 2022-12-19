@@ -1,7 +1,6 @@
 use crate::nomstr;
 use itertools::Itertools;
 use nom::{
-    branch::alt,
     bytes::complete::{tag, take_while},
     character::{
         complete::{self, alpha1},
@@ -12,14 +11,13 @@ use nom::{
     sequence::preceded,
     Finish, IResult,
 };
-use std::{collections::HashMap, fs, iter::zip, str::FromStr};
-
 use petgraph::{
-    algo::dijkstra::dijkstra,
+    // algo::dijkstra::dijkstra,
     dot::{Config, Dot},
     graph::NodeIndex,
     Graph,
 };
+use std::{collections::HashMap, fs, iter::zip, str::FromStr};
 
 pub fn day16a() -> String {
     let data = fs::read_to_string("assets/day16.txt").expect("Could not load file");
@@ -122,7 +120,7 @@ Valve JJ has flow rate=21; tunnel leads to valve II
     #[test]
     fn test_day16a_sample() {
         let valves = parse_input_a(RAW_INPUT);
-        let graph = build_graph(&valves);
+        let _graph = build_graph(&valves);
     }
 
     #[test]
