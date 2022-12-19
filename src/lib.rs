@@ -1,6 +1,4 @@
-use std::fs;
-use std::path::Path;
-use std::str::FromStr;
+use std::{fs, path::Path, str::FromStr};
 
 pub mod day01;
 pub mod day02;
@@ -19,6 +17,7 @@ pub mod day14;
 pub mod day15;
 pub mod day16;
 pub mod day17;
+pub mod day18;
 
 pub fn read_input<P, T>(input: P) -> Vec<T>
 where
